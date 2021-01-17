@@ -1,5 +1,6 @@
 
 
+const { timeStamp } = require('console');
 const net = require('net');
 
 class Request{
@@ -30,6 +31,7 @@ ${this.bodyText}`
     }
     send(connection){
         return new Promise((resolve,reject)=>{
+            const parser = new ResponseParser;
             if(connection){
                 connection.write(this.toString())
             }else{
@@ -44,6 +46,8 @@ ${this.bodyText}`
                 })
             }
             connection.on('data',data=>{
+                parser.receive(data.toString())
+                console.log('statusLine:',parser.statusLine)
                 console.log('connection:',data.toString())
                 resolve(data.toString())
                 connection.end()
@@ -65,9 +69,11 @@ class ResponseParser{
         this.WAITING_STATUS_LINE = 0;
         this.WAITING_STATUS_LINE_END = 0;
         this.WAITING_HEADER_NAME = 2;
-        this.WAITING_HEADER_VALUE = 3;
-        this.WAITING_HEADER_LINE_END = 4;
-        this.WAITING_HEADER_BLOCK_END = 5;
+        this.WAITING_HEADER_SPACE = 3;
+        this.WAITING_HEADER_VALUE = 4;
+        this.WAITING_HEADER_LINE_END = 5;
+        this.WAITING_HEADER_BLOCK_END = 6;
+        this.WAITING_BODY = 7;
         this.current = this.WAITING_STATUS_LINE;
         this.statusLine = "";
         this.headers = {};
@@ -80,14 +86,42 @@ class ResponseParser{
         }
     }
     receiveChar(char){
-        if(this.current === WAITING_STATUS_LINE){
+        // 第一行开始
+        if(this.current === this.WAITING_STATUS_LINE){
+            console.log(char.charCodeAt(0))
+            if(char == '\r'){
+                this.current = this.WAITING_HEADER_LINE_END
+            }
+            if(char == '\n'){
+                this.current = this.WAITING_HEADER_NAME
+            }else{
+                this.statusLine += char
+            }
+        }
+        if(this.current === this.WAITING_STATUS_LINE){
+            if(char === '\n'){
+                this.current = this.WAITING_HEADER_NAME
+            }
+        }
+        // 第一行结束
 
+        if(this.current === this.WAITING_HEADER_NAME){
+            if(char === ':'){
+                this.current = this.WAITING_HEADER_SPACE
+            }else{
+                this.headerName += char
+            }
+            if(this.current === this.WAITING_HEADER_SPACE){
+                if(char === ' '){
+                    this.current = this.WAITING_HEADER_VALUE
+                }
+            }
         }
     }
 
 }
 class TrunkedBodyParser{
-
+    constructor(){}
 }
 
 void async function(){
@@ -96,6 +130,9 @@ void async function(){
         host:'127.0.0.1',
         port:"8088",
         path:"/",
+        headers:{
+            "X-Foo2":"custom"
+        },
         body:{
             name:"winter"
         }
