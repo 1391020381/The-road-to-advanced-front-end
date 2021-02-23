@@ -76,3 +76,49 @@
 * 编辑脚手架代码
 * 将脚手架发布到 npm
 
+
+# 脚手架本地调试
+1. npm unlink
+2. npm link 安装到全局   package.json  bin
+
+3. 分包调试
+    - imooc-test-lib    npm link 安装到全局
+    - imooc-test        手动在package.json 倒入依赖
+
+
+ * 链接本地脚手架
+    - cd your-cli-lib
+    - npm link
+
+* 链接本地库文件
+    - cd your-lib-dir
+    - npm link
+    - cd your-cli-dir
+    - npm link your-lib    
+
+* 取消链接本地库文件
+    - cd your-lib-dir
+    - npm unlink
+
+    - cd your-cli-dir
+    - npm unlink your-lib (link 存在)
+    - rm -rf node_modules  （link不存在)
+    - npm install -s your-lib
+
+
+ # 理解 npm link
+ * npm link your-lib:将当前项目中的 node_modules 下指定的库文件链接到node 全局 node_modules下的库文件
+ * npm link：将当前项目链接到 node全局 node_modules中作为一个库文件,并解析 bin配置创建可执行文件   
+
+
+# 理解 npm unlink
+* npm unlink:将当前项目从node全局 node_modules中移除
+* npm unlink your-lib:将当前项目中的库文件依赖移除
+
+# 脚手架命令注册和参数解析
+* process.argv
+
+# 脚手架项目发布
+* npm unlink 本地软链接
+* npm run publish
+
